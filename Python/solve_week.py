@@ -26,7 +26,7 @@ df = pd.read_csv(f'Patient_data{n_pat}.csv')
 spec_i = [spec[df['specialty'][i]]+1 for i in range(n_patients)]#speciality of a patient
 performing_cost = [float(df['perform_cost'][i]) for i in range(n_patients)]
 postponing_cost = [float(df['postpone_cost'][i]) for i in range(n_patients)]
-cancel_cost = [float(df['postpone_cost'][i])-float(df['perform_cost'][i]) for i in range(n_patients)]
+cancel_cost = [float(df['postpone_cost'][i]) for i in range(n_patients)]
 
 
 #Load OR_cost. or_cost[s][l][m] is the cost of l electives and m emergencies for speciality s
@@ -213,60 +213,70 @@ def find_em_block(em,n_daily_emergencies,B):
     return B,em_blocks
 
 Blocks = []
-with open(f"schedule_phase1_{n_pat}.csv", 'w') as f_out:
-    f_out.write(f'Block,Specialty,Day,Electives,Emergencies,,Start_times\n')
-    c = 0
-    for b in range(32):
-        for l in range(9):
-            for m in range(4):
-                if z[b][l][m]:
-                    f_out.write(f'{b},{spec_str[spec_b[b]-1]},{day[b]},{l},{m},,{or_cost_t[spec_b[b]-1][l][m][1:-1]}\n')
-                    print(f'Block {b} with {l} electives, {m} emergencies (cost {or_cost[spec_b[b]-1][l][m]} ({spec_str[spec_b[b]-1]}), start times {or_cost_t[spec_b[b]-1][l][m]} day {day[b]})')
-                    c += or_cost[spec_b[b]-1][l][m]
-                    
-                    times = [int(s) for s in re.findall(r'\d+', or_cost_t[spec_b[b]-1][l][m])]
-                    temp_c = costs_noEmergency(spec_b[b]-1,times,l)
+schedule = pd.DataFrame(columns = ['Block','Specialty','Day','Electives','Emergencies','Start_times'])
+loc = 0
+c = 0
+#with open(f"schedule_phase1_{n_pat}.csv", 'w') as f_out:
+#    f_out.write(f'Block,Specialty,Day,Electives,Emergencies,,Start_times\n')
+for b in range(32):
+    for l in range(9):
+        for m in range(4):
+            if z[b][l][m]:
+#                    f_out.write(f'{b},{spec_str[spec_b[b]-1]},{day[b]},{l},{m},,{or_cost_t[spec_b[b]-1][l][m][1:-1]}\n')
+                schedule.loc[loc] = [b,spec_str[spec_b[b]-1],day[b],l,m,list(eval(or_cost_t[spec_b[b]-1][l][m]))]
+                print(f'Block {b} with {l} electives, {m} emergencies (cost {or_cost[spec_b[b]-1][l][m]} ({spec_str[spec_b[b]-1]}), start times {or_cost_t[spec_b[b]-1][l][m]} day {day[b]})')
+                c += or_cost[spec_b[b]-1][l][m]
+                loc += 1
+                times = [int(s) for s in re.findall(r'\d+', or_cost_t[spec_b[b]-1][l][m])]
+                temp_c = costs_noEmergency(spec_b[b]-1,times,l)
 #                    print(temp_c)
-                    for i,j in enumerate(temp_c):
-                        C[i] += j
-                    Blocks.append([l,m,times,0])
-                    
-    f_out.write(f'\nPatient,Block,Cancel_cost\n')                
-    for i in range(n_patients):
-        if w[i]:
-            f_out.write(f'{i},x\n')   
-            print(f'Patient {i} postponed (cost {postponing_cost[i]})')
-            c += postponing_cost[i]
-            C[4] += int(postponing_cost[i])
-        else:
-            block = -1
-            for b in range(32):
-                if x[b][i]:
-                    block = b
-            f_out.write(f'{i},{block},{cancel_cost[i]}\n')  
-            c += performing_cost[i]
-            C[3] += int(performing_cost[i])
-        
+                for i,j in enumerate(temp_c):
+                    C[i] += j
+                Blocks.append([l,m,times,0])
+                
+#    f_out.write(f'\nPatient,Block,Cancel_cost\n') 
+loc = 0
+assign = pd.DataFrame(columns = ['Patient','Block','Cancel_cost'])
+for i in range(n_patients):
+    if w[i]:
+#            f_out.write(f'{i},x\n')   
+        assign.loc[loc] = [i,-1, 0]
+        print(f'Patient {i} postponed (cost {postponing_cost[i]})')
+        c += postponing_cost[i]
+        C[4] += int(postponing_cost[i])
+    else:
+        assign.loc[loc] = [int(i), block, cancel_cost[i]]
+        block = -1
+        for b in range(32):
+            if x[b][i]:
+                block = b
+#            f_out.write(f'{i},{block},{cancel_cost[i]}\n')  
+        c += performing_cost[i]
+        C[3] += int(performing_cost[i])
+    loc +=1
+     
+schedule.to_csv('schedule.csv')
+assign.to_csv('assignment.csv')
 #print(f'\n cost = {sum(C)}')
 #print_cost(C)
             
 print(f'\n\nSchedule with {n_patients} electives, {n_daily_emergencies} emergency spots per day')
 
-for em in range(4):
-    C_em = [0 for i in range(5)]
-    C_em[3],C_em[4] = C[3],C[4]
-    for i in range(em):
-        C_em[3] += 5*cost_emer
-    b,em_blocks = find_em_block(em,n_daily_emergencies,Blocks.copy())
-#    print("-- ",em,em_blocks)
-#    print(b)
-    
-    for i in range(32):
-        l,m = b[i][0],b[i][1]
-        times = b[i][2]
-        temp_c = costs_Emergency(spec_b[i]-1,times,l,m,b[i][3])
-#        print(temp_c)
-        for i,j in enumerate(temp_c):
-            C_em[i] += j
-    print(f'\n{em} emergencies per day - cost = {sum(C_em)}')
-    print_cost(C_em)
+#for em in range(4):
+#    C_em = [0 for i in range(5)]
+#    C_em[3],C_em[4] = C[3],C[4]
+#    for i in range(em):
+#        C_em[3] += 5*cost_emer
+#    b,em_blocks = find_em_block(em,n_daily_emergencies,Blocks.copy())
+##    print("-- ",em,em_blocks)
+##    print(b)
+#    
+#    for i in range(32):
+#        l,m = b[i][0],b[i][1]
+#        times = b[i][2]
+#        temp_c = costs_Emergency(spec_b[i]-1,times,l,m,b[i][3])
+##        print(temp_c)
+#        for i,j in enumerate(temp_c):
+#            C_em[i] += j
+#    print(f'\n{em} emergencies per day - cost = {sum(C_em)}')
+#    print_cost(C_em)

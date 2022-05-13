@@ -135,7 +135,10 @@ for n_pat in [70,100,140,200]:
                 dur = [specialties_mean[s] for i in range(l)]+[emergency_mean for i in range(m)]
                 for i in range(added_m-m):
                     dur.append(emergency_mean)
-                    T.append(T[-1]+emergency_mean)
+                    if l > 1:
+                        T.append(T[-1]+emergency_mean)
+                    else:
+                        T.append(emergency_mean*i)
                 cancel = True
                     
             for i in range(len(T)-1):
