@@ -12,18 +12,25 @@ The AIMMS program provided can be used by opening and running the project. The d
 
 #### Python 
 
-A schedule is created and automatically saved by running solve_week.py. Using a conda environment makes the packages installation easier.
+Using a conda environment makes the packages installation easier.
 
 ```shell
 cd Python
-...
-conda list --export > requirements.txt
+conda create --name hanalog_mopta --file requirements.txt
+``` 
+
+A schedule is created and automatically saved by running solve_week.py.
+
+
+```shell
+conda activate hanalog_mopta
+cp OR_cost_reference.txt OR_cost.txt
 python solve_week.py
 ``` 
 
 A schedule_phase1_n.csv file containing the schedule is produced, with n = {70,100,140,200} the number of patients defined in parameters.xlsx. Analysis of the quality of those results are provided in the report.
 
-### Phase 2
+### Phase 2 ---TODO
 
 Based on schedule_phase1.csv, emergencies can dinamically be added to the schedule.
 
@@ -50,13 +57,21 @@ python OR_costs_generation.py
 A OR_cost.txt file is produced and will then be used by the solver in phase 1. OR_cost.xlsx is used for readability and for AIMMS.
 
 
-### OR costs
+### Patients Data ---TODO
 
 Launching data_generator.py? Modifying Patient_dataXXX.csv?
 
 
+### Phase 1 data analysis
+
+The results from phase 1 analysed in the report are replicable by running
+
+```shell
+python emergencies_cost_estimation.py
+``` 
 
 ## Files/Directories
 Survey.txt - contains Literature review
-Report.pdf - submitted report
+Report.pdf - submitted report ---TO ADD
 data/ - contains ...
+
