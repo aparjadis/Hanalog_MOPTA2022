@@ -28,7 +28,7 @@ cp OR_cost_reference.txt OR_cost.txt
 python solve_week.py
 ``` 
 
-A schedule_phase1_n.csv file containing the schedule is produced, with n = {70,100,140,200} the number of patients defined in parameters.xlsx. Analysis of the quality of those results are provided in the report.
+Files schedule.csv and assignment.csv containing the schedule are produced, with the number of patients n = {70,100,140,200} defined in parameters.xlsx. Analysis of the quality of those results are provided in the report.
 
 ### Phase 2 ---TODO
 
