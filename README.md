@@ -32,7 +32,8 @@ A schedule_phase1_n.csv file containing the schedule is produced, with n = {70,1
 
 ### Phase 2 ---TODO
 
-Based on schedule_phase1.csv, emergencies can dinamically be added to the schedule.
+Based on schedule_phase1.csv, emergencies can dynamically be added to the schedule.
+--User shoud be able to enter the emergency urgency and time of arrival, and a new schedule is produced for this.
 
 ```shell
 --CODE HERE--
