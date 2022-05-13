@@ -1,0 +1,211 @@
+## ams_version=1.0
+
+Model Main_MOPTA2022_HANALOG_MIP {
+	Set Blocks {
+		Index: b;
+		Definition: {
+			{1..32}
+		}
+	}
+	Set Days {
+		SubsetOf: Integers;
+		Index: d;
+		Definition: {
+			{1..5}
+		}
+	}
+	Set Specialities {
+		Index: s;
+		Definition: {
+			{1..6}
+		}
+	}
+	Set Patients {
+		Index: i;
+		Definition: {
+			{1..n_patients}
+		}
+	}
+	Set Electives {
+		SubsetOf: Integers;
+		Index: el;
+		Definition: {
+			{0..8}
+		}
+	}
+	Set Emergencies {
+		SubsetOf: Integers;
+		Index: em;
+		Definition: {
+			{0..3}
+		}
+	}
+	Parameter n_patients;
+	Parameter n_daily_emergencies;
+	Parameter day {
+		IndexDomain: b;
+	}
+	ElementParameter spec_b {
+		IndexDomain: b;
+		Range: Specialities;
+	}
+	ElementParameter spec_i {
+		IndexDomain: i;
+		Range: Specialities;
+	}
+	Parameter cost_block {
+		IndexDomain: (s,el,em);
+	}
+	Parameter postponing_cost {
+		IndexDomain: i;
+	}
+	Parameter performing_cost {
+		IndexDomain: i;
+	}
+	Variable x {
+		IndexDomain: (b,i);
+		Range: binary;
+	}
+	Variable y {
+		IndexDomain: b;
+		Range: free;
+	}
+	Variable w {
+		IndexDomain: i;
+		Range: binary;
+	}
+	Variable z {
+		IndexDomain: (b,el,em);
+		Range: binary;
+	}
+	Variable total_cost {
+		Range: free;
+	}
+	Constraint z_to_x {
+		IndexDomain: b;
+		Definition: sum[i,x[b,i]] = sum[(el,em),el*z(b,el,em)];
+	}
+	Constraint z_to_y {
+		IndexDomain: b;
+		Definition: y[b] = sum[(el,em),em*z(b,el,em)];
+	}
+	Constraint unique_z {
+		IndexDomain: b;
+		Definition: sum[(el,em),z(b,el,em)] = 1;
+	}
+	Constraint schedule_patient {
+		IndexDomain: i;
+		Definition: sum(b|spec_b[b]=spec_i[i],x[b,i]) + w[i] = 1;
+	}
+	Constraint schedule_patient2 {
+		IndexDomain: i;
+		Definition: sum(b|spec_b[b]<>spec_i[i],x[b,i]) = 0;
+	}
+	Constraint em_day {
+		IndexDomain: d;
+		Definition: sum[b|day[b]=d,y[b]] = n_daily_emergencies;
+	}
+	Constraint obj {
+		Definition: total_cost = sum((b,el,em),cost_block(spec_b(b),el,em)*z(b,el,em))+sum(i,performing_cost(i) + w(i)*(postponing_cost(i)-performing_cost(i)));
+	}
+	MathematicalProgram scheduleWeek {
+		Objective: total_cost;
+		Direction: minimize;
+		Constraints: AllConstraints;
+		Variables: AllVariables;
+		Type: Automatic;
+	}
+	Procedure MainInitialization {
+		Comment: "Add initialization statements here that do NOT require any library being initialized already.";
+	}
+	Procedure PostMainInitialization {
+		Comment: {
+			"Add initialization statements here that require that the libraries are already initialized properly,
+			or add statements that require the Data Management module to be initialized."
+		}
+	}
+	Procedure MainExecution {
+		Body: {
+			axll::CloseAllWorkbooks;
+			
+			axll::OpenWorkBook(WorkbookFilename : "parameters.xlsx" );
+			axll::SelectSheet(SheetName : "sheet1" );
+			axll::ReadSingleValue(
+			        ScalarReference : n_patients ,
+			        Cell            : "A2" );
+			axll::ReadSingleValue(
+			        ScalarReference : n_daily_emergencies ,
+			        Cell            : "B2" );
+			axll::ReadList(
+			        IdentifierReference    : day ,
+			        RowHeaderRange         : "D2:D33" ,
+			        DataRange              : "E2:E33" );
+			axll::ReadList(
+			        IdentifierReference    : spec_b(b) ,
+			        RowHeaderRange         : "D2:D33" ,
+			        DataRange              : "F2:F33" );
+			axll::CloseWorkBook(WorkbookFilename : "parameters.xlsx" );
+			
+			axll::OpenWorkBook(WorkbookFilename : "OR_cost.xlsx" );
+			axll::SelectSheet(SheetName : "sheet1" );
+			axll::ReadTable( cost_block , "A3:A8" , "B1:AK2" , "B3:AK8" );
+			axll::CloseWorkBook(WorkbookFilename : "OR_cost.xlsx" );
+			
+			axll::OpenWorkBook(WorkbookFilename : "patient_data.xlsx" );
+			axll::SelectSheet(SheetName : "sheet1" );
+			axll::ReadList(
+			        IdentifierReference    : postponing_cost(i) ,
+			        RowHeaderRange         : "A2:A71" ,
+			        DataRange              : "F2:F71" );
+			axll::ReadList(
+			        IdentifierReference    : performing_cost(i) ,
+			        RowHeaderRange         : "A2:A71" ,
+			        DataRange              : "E2:E71" );
+			axll::ReadList(
+			        IdentifierReference    : spec_i(i) ,
+			        RowHeaderRange         : "A2:A71" ,
+			        DataRange              : "H2:H71" );
+			axll::CloseWorkBook(WorkbookFilename : "patient_data.xlsx" );
+			
+			solve scheduleWeek ;
+		}
+	}
+	Procedure PreMainTermination {
+		Body: {
+			return DataManagementExit();
+		}
+		Comment: {
+			"Add termination statements here that require all libraries to be still alive.
+			Return 1 if you allow the termination sequence to continue.
+			Return 0 if you want to cancel the termination sequence."
+		}
+	}
+	Procedure MainTermination {
+		Body: {
+			return 1;
+		}
+		Comment: {
+			"Add termination statements here that do not require all libraries to be still alive.
+			Return 1 to allow the termination sequence to continue.
+			Return 0 if you want to cancel the termination sequence.
+			It is recommended to only use the procedure PreMainTermination to cancel the termination sequence and let this procedure always return 1."
+		}
+	}
+	Section Quantities_and_Units {
+		Comment: {
+			"This section contains all the units and quantities that are added automatically by AIMMS.
+			It is recommended to declare all your quantities here."
+		}
+		Quantity SI_Time_Duration {
+			BaseUnit: s;
+			Conversions: minute->s : #-># * 60;
+			Comment: {
+				"Expresses the value for the duration of periods.
+				
+				The unit s has been added automatically because it is a required unit for AimmsWebUI.
+				
+				The unit minute has been added automatically because it is a required unit for AimmsWebUI."
+			}
+		}
+	}
+}
