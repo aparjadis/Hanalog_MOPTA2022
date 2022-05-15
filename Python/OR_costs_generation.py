@@ -11,7 +11,7 @@ from pandas import DataFrame
 
 import sys
 sys.path.append('../')
-from Data.DATA_GENERATOR import DATA_GENERATOR
+from Data.data_generator import DATA_GENERATOR
 import random as rd
 param = DATA_GENERATOR()
 param.generate_data()
@@ -21,11 +21,9 @@ C_WAITING = 2 #cost of waiting for an OR, per minute
 C_OVERTIME = 5 #cost of working overtime, per minute
 C_IDLE = 1 #cost of waiting for a surgery, per minute
 
-C_REJECTED = 50 #cost of postponing to next week #not used
-C_CANCELLED = 300 #cost of cancelling
+N_ITER = 100000
 
 #surgeries
-N_SURGERIES = 100
 specialties = ['CAR','GAS','GYN','MED','ORT','URO']
 specialties_ratio = [0.14,0.18,0.28,0.05,0.17,0.18]
 specialties_slots = [[1,1,3,5,5],[1,2,3,3,4,5],[1,2,2,3,3,4,4,5],[3],[1,2,2,3,4,5],[1,1,2,3,4,5]]
@@ -38,6 +36,7 @@ specialties_count = dict()
 specialties_days = dict()
 specialties_means = dict()
 specialties_stdev = dict()
+N_SURGERIES = 100
 for i,s in enumerate(specialties):
     specialties_count[s] = int(N_SURGERIES*specialties_ratio[i])
     specialties_days[s] = specialties_slots[i]
@@ -118,7 +117,6 @@ def costs(days):#takes the simulated day and computes cost
 #            print(f'end times {OR.t_end}')
             
             for i in range(len(OR.t_start)-1):
-                c = 0
                 if OR.t_end[i] > OR.t_start[i+1]:
                     wcost += (OR.t_end[i]-OR.t_start[i+1])*C_WAITING
 #                    print(f'Waiting cost of {c}')
@@ -201,7 +199,7 @@ def estimate_best_cost(p,e,s):#patients, emergencies, specialty
         
     #Do len(N) rounds, and keep N best start times based on M simulations
     N = [50, 10, 1]
-    M = [100, 10000, 100000]
+    M = [N_ITER//1000, N_ITER//10, N_ITER]
     
     for it in range(len(N)):
         times = [rand_times(p,e,s) for i in range(M[it])]
@@ -268,20 +266,6 @@ def estimate_best_cost(p,e,s):#patients, emergencies, specialty
 
 if __name__ == "__main__":
     
-    #simulate a day
-#    days = [[] for i in range(5)]
-#    greedy_start(days)
-#    day_simulation(days)
-#    day_cost = costs(days)
-#    print(f'\n\nTotal costs = {day_cost}')
-
-    
-    #specialty #patients, #emergencies : estimated cost (start times)
-    
-    #costs
-#C_WAITING = 2 #cost of waiting for an OR, per minute
-#C_OVERTIME = 10 #cost of working overtime, per minute
-#C_IDLE = 1 #cost of waiting for a surgery, per minute
     with open(o_file, 'w') as f_out:
         f_out.write('#costs\n')
         f_out.write(f'#C_WAITING = {C_WAITING} #cost of waiting for an OR, per minute\n')

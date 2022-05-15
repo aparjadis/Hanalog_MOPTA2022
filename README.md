@@ -49,18 +49,18 @@ Data for simulated OR costs and patients is provided as described in the report,
 
 ### OR costs
 
-Costs can be recomputed if the costs considered change. The following code takes around 1 hour to complete.
+Costs can be recomputed with changed idle, wait and overtime costs. The following command takes around 1 hour to complete.
 
 ```shell
 python OR_costs_generation.py
 ``` 
 
-A OR_cost.txt file is produced and will then be used by the solver in phase 1. OR_cost.xlsx is used for readability and for AIMMS.
+A OR_cost.txt file is produced and will then be used by the solver in phase 1. OR_cost.xlsx is used for readability and for the AIMMS program.
 
 
-### Patients Data ---TODO
+### Patients Data
 
-Launching data_generator.py? Modifying Patient_dataXXX.csv?
+data_generator.py produces the data used by the solver based on historical/public data. Modifying Patient_data{70..200}.csv allow to solve for the desired situation, with patients having different costs and priorities.
 
 
 ### Phase 1 data analysis
@@ -73,9 +73,12 @@ python emergencies_cost_estimation.py
 
 ## Files/Directories
 
-Survey.txt - contains Literature review
+Survey.txt - contains a literature review
 
 Report.pdf - submitted report ---TO ADD
 
-data/ - contains ...
+data/ - contains the code and references to produce the patients data.
 
+AIMMS/ - contains the AIMMS program that produces a schedule.
+
+Python/ - contains the code described above for computing OR costs, generating a week schedule and analyse the results.
