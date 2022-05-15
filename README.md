@@ -12,7 +12,7 @@ The AIMMS program provided can be used by opening and running the project. The d
 
 #### Python 
 
-Using a conda environment makes the packages installation easier.
+This also be done using python, with which the rest of the tests have been implemented. Using a conda environment makes the packages installation easier.
 
 ```shell
 cd Python
