@@ -28,5 +28,6 @@ six=1.16.0=pypi_0
 sqlite=3.38.3=hc218d9a_0
 tk=8.6.11=h1ccaba5_1
 wheel=0.37.1=pyhd3eb1b0_0
+xlrd=2.0.1=pypi_0
 xz=5.2.5=h7f8727e_1
 zlib=1.2.12=h7f8727e_2
