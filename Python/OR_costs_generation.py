@@ -6,6 +6,10 @@ Created on Tue Mar 29 15:10:56 2022
 @author: Augustin Parjadis
 """
 
+'''
+This file contains the code to compute estimated costs for all block configurations.
+'''
+
 import numpy as np
 from pandas import DataFrame
 
@@ -21,6 +25,7 @@ C_WAITING = 2 #cost of waiting for an OR, per minute
 C_OVERTIME = 5 #cost of working overtime, per minute
 C_IDLE = 1 #cost of waiting for a surgery, per minute
 
+#number of rounds to compute the final cost of a block
 N_ITER = 100000
 
 #surgeries
@@ -154,7 +159,6 @@ def rand_data_times(p,e,s):#return a list of durations of size e+s
     return times
   
 o_file = "OR_cost.txt"
-##WRITE HEADER
 def estimate_best_cost(p,e,s):#patients, emergencies, specialty
     
     #if empty

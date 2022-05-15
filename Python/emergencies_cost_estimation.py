@@ -7,9 +7,12 @@ from minizinc import Instance, Model, Solver
 import nest_asyncio
 nest_asyncio.apply()
 
+'''
+This file contains the code used to study the quality of phase 1 schedules.
+'''
 
 for n_pat in [70,100,140,200]:
-#for n_pat in [140]:
+    
     print(f'\n---{n_pat} patients----------------------------------------\n')
     for n_emer in range(4):
         
@@ -347,15 +350,11 @@ for n_pat in [70,100,140,200]:
             for ca in cancelled_b:
                 C_em[3] -= int(b_perform_cost[ca])
                 C_em[5] += int(b_cancel_cost[ca])+int(b_perform_cost[ca])
-        #    print("-- ",em,em_blocks)
-        #    print(b)
-#            print(f'CANCELLED {cancelled_b}')
             
             for i in range(32):
                 l,m = b[i][0],b[i][1]
                 times = b[i][2]
                 temp_c = costs_Emergency(spec_b[i]-1,times,l,m,b[i][3],b_cancel_cost[i])
-        #        print(temp_c)
                 for i,j in enumerate(temp_c):
                     C_em[i] += j
             print(f'\n{em} emergencies per day - cost = {sum(C_em)}')

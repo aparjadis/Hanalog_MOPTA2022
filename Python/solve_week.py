@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+'''
+This file contains the code to produce a schedule for the week, with the parameters and data 
+from the files parameters.xlsx, OR_cost.txt, Patient_data{n_patients}.csv.
+'''
+
 import pandas as pd
 import re
 from minizinc import Instance, Model, Solver
 import nest_asyncio
 nest_asyncio.apply()
-import sys
+
 
 spec = {'Card': 0, 'Gastro': 1, 'Gyn': 2, 'Med': 3, 'Orth': 4, 'Uro': 5}
 n_day = 5
-
-#assert(len(sys.argv) > 1,"You must specify a numbr of patients")
-#n_pat = int(sys.argv[1])
-#assert(n_pat in [70,100,140,200])
 
 df = pd.read_excel('parameters.xlsx')
 n_patients = int(df['n_patients'][0])
