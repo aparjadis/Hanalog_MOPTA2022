@@ -32,7 +32,7 @@ Files schedule.csv and assignment.csv containing the schedule are produced, with
 
 ### Phase 2
 
-Based on schedule.csv and assignment.csv, emergencies can dynamically be added to the schedule. This part is partially completed (all the logic is coded but the code crashes).
+Based on schedule.csv and assignment.csv, emergencies can dynamically be added to the schedule.
 
 ```shell
 python re-opt.py
