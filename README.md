@@ -30,17 +30,13 @@ python solve_week.py
 
 Files schedule.csv and assignment.csv containing the schedule are produced, with the number of patients n = {70,100,140,200} defined in parameters.xlsx. Analysis of the quality of those results are provided in the report.
 
-### Phase 2 ---TODO
+### Phase 2
 
-Based on schedule_phase1.csv, emergencies can dynamically be added to the schedule.
---User shoud be able to enter the emergency urgency and time of arrival, and a new schedule is produced for this.
+Based on schedule.csv and assignment.csv, emergencies can dynamically be added to the schedule. This part is partially completed (all the logic is coded but the code crashes).
 
 ```shell
---CODE HERE--
-python solve_emergencies.py #user interaction with the code?
+python re-opt.py
 ``` 
-
-A schedule_phase2.csv file containing the new updated schedule is produced.
 
 
 ## Data
@@ -73,11 +69,7 @@ python emergencies_cost_estimation.py
 
 ## Files/Directories
 
-Survey.txt - contains a literature review
-
-Report.pdf - submitted report ---TO ADD
-
-data/ - contains the code and references to produce the patients data.
+data/ - contains the code and references to produce the patients data along with a literature review (Survey.txt).
 
 AIMMS/ - contains the AIMMS program that produces a schedule.
 

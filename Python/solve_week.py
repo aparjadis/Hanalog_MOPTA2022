@@ -246,18 +246,18 @@ for i in range(n_patients):
         c += postponing_cost[i]
         C[4] += int(postponing_cost[i])
     else:
-        assign.loc[loc] = [int(i), block, cancel_cost[i]]
         block = -1
         for b in range(32):
             if x[b][i]:
                 block = b
+        assign.loc[loc] = [int(i), block, cancel_cost[i]]
 #            f_out.write(f'{i},{block},{cancel_cost[i]}\n')  
         c += performing_cost[i]
         C[3] += int(performing_cost[i])
     loc +=1
      
-schedule.to_csv('schedule.csv')
-assign.to_csv('assignment.csv')
+schedule.to_csv(f'results-{n_patients}/schedule.csv')
+assign.to_csv(f'results-{n_patients}/assignment.csv')
 #print(f'\n cost = {sum(C)}')
 #print_cost(C)
             

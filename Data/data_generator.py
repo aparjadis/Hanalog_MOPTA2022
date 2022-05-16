@@ -161,17 +161,21 @@ class DATA_GENERATOR():
         #self.patients['duration'] = dur
         self.patients.to_csv(f"Patient_data{self.patient_count[self.instance]}.csv")
         
-    def generate_emergencies(self, _id = 1):
+    def generate_emergencies(self, count = 1, _id = 1):
         """
         Generate given number of emergencies for a day alongwith arrival times
         emergency_patients: dataframe of patients with category and arrival times
         """
-        emer_id = _id + 1
-        acuity = rd.choices(self.emergency_status, self.emergency_percentage.values(), k = 1)
-        arrival_time  = self.doh  * np.random.uniform(size = 1)
-        duration = rd.sample(list(self.emer_surgery_times['Actual Surgery TIME']), k = 1)
+        l = []
+        
+        for i in range(count):
+            emer_id = _id + 1
+            acuity = rd.choices(self.emergency_status, self.emergency_percentage.values(), k = 1)
+            arrival_time  = self.doh  * np.random.uniform(size = 1)
+            duration = rd.sample(list(self.emer_surgery_times['Actual Surgery TIME']), k = 1)
+            l.append({'_id':emer_id, 'acuity':acuity, 'arrival_time':arrival_time, "duration":duration})
 
-        return {'_id':emer_id, 'acuity':acuity, 'arrival_time':arrival_time, "duration":duration}
+        return l
 
 
 for i in range(1,5):
