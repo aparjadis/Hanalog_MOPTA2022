@@ -11,30 +11,29 @@ import pandas as pd
 import copy
 import sys
 sys.path.append('../')
-from Data.data_generator import DATA_GENERATOR
+from Data.data_reopt import DATA_GENERATOR
 from minizinc import Instance, Model, Solver
 import random as rd
 
 import time
+#rd.seed(100)
 
 start_time = time.time()
 import ast
 import nest_asyncio
 nest_asyncio.apply()
 
-df = pd.read_excel('parameters.xlsx')
-n_patients = int(df['n_patients'][0])
-
 instances = {1:70, 2:100}
 inst = 2
 param = DATA_GENERATOR()
 param.generate_data()
 
-print("\nPlease see https://github.com/aparjadis/Hanalog_MOPTA2022 for a polished version of this algorithm. Thanks!\n\n")
-
 specialties = {'CAR': 'Card', 'GAS': 'Gastro', 'GYN': 'Gyn', 'MED': 'Med', 'ORT': 'Orth', 'URO': 'Uro'}
 
 def update_surgery_end_time(time, a, today):
+    """
+    This function takes a time input 'time' and the block 'a' and upadtes the surgery end times in tracker data frame today.
+    """
     for i in range(today.elective_complete.at[a],len(today["patients"].loc[a])):
         end = today["Start_times"].loc[a][i] +  today["durations"].loc[a][i]
         if end <= time:
@@ -48,6 +47,9 @@ def update_surgery_end_time(time, a, today):
     return today
 
 def current_surgery_exp_end( time,k):
+    """
+    This function takes a time input 'time' and the block 'k' and return the expected end of current surgery in the block.
+    """
     if today.elective_complete.at[k] != today.Electives.at[k]:
         for i in range(today.elective_complete.at[k], today.Electives.at[k] ):
             if  today.Start_times.at[k][i] <= time and today.Start_times.at[k][i] +  today["durations"].loc[k][i] > time:
@@ -59,6 +61,9 @@ def current_surgery_exp_end( time,k):
     return 0 
 
 def get_rem_elective_info(time,k):
+    """
+    This function takes a time input 'time' and the block 'k' and returns info regarding the current remaining electives.
+    """
     n_electives, elective_start, exp_elective_dur,elective_patients, C_canc = 0, [], [],[] , []
     for i in range(today.elective_complete.at[k], today.Electives.at[k]):
         if  today.Start_times.at[k][i] >= time:
@@ -70,6 +75,9 @@ def get_rem_elective_info(time,k):
     return n_electives, elective_start, exp_elective_dur,elective_patients, C_canc
 
 def get_rem_emer_info(time, k):
+    """
+    This function takes a time input 'time' and the block 'a' and upadtes the surgery end times in tracker data frame today.
+    """
     n_nu_emer,nu_emer_start,nu_emer_duration = 0, [], []
     for i in range(len(today.emer_patients.at[k])):
         if  today.emer_start_times.at[k][i] >= time:
@@ -80,6 +88,10 @@ def get_rem_emer_info(time, k):
     return  n_nu_emer,nu_emer_start,nu_emer_duration
 
 def update_elective_start_times(k, time, new_elective_start_action):
+    """
+    This function takes a time input 'time', the block 'k' and new_elective_start_action to upadte the surgery start times in tracker data frame today.
+    """
+    
     l = 0
     for i in range(today.elective_complete.at[k] + today.status.at[k], today.Electives.at[k]):
         
@@ -97,6 +109,9 @@ def update_elective_start_times(k, time, new_elective_start_action):
         l += 1
         
 def get_next_surgery_start(time, k):
+    """
+    This function takes a time input 'time', the block 'k' gives you info regarding the next surgery scheduled in the block.
+    """
     
     times = np.concatenate([np.array(today.elective_start_times.at[k]), np.array(today.emer_start_times.at[k])])
     surgery_list = np.concatenate([np.array(today.patients.at[k]), np.array(today.emer_patients.at[k])])
@@ -120,6 +135,9 @@ def get_next_surgery_start(time, k):
     
     
 def select_block(emer_blocks, candidates):
+    """
+    This function selects a suitbale block given the emer_blocks and candidates.
+    """
     reduced_set = {}
     for i in emer_blocks:
         if i in candidates and emer_blocks[i] > 0:
@@ -130,6 +148,9 @@ def select_block(emer_blocks, candidates):
         return rd.choices(candidates)[0]
     
 def max_planned_emer_end(k):
+    """
+    This function returns the max expected end given a current plan of surgeries.
+    """
     if len(today.emer_start_times.loc[k]) > 0:
         max_start = max(today.emer_start_times.loc[k])
         index = today.emer_start_times.loc[k].index(max_start)
@@ -146,7 +167,8 @@ allowedOT = 240
 cost_calculations = pd.DataFrame(columns = [ 'iter','C_over_time','C_idle_time','C_wait_time','C_canc', 'num_canc'])#Emer_wait
 
 for itr in range(10):
-    schedule  = pd.read_csv("results-" + str(n_patients) + "/schedule.csv")
+    #current schedule of csv file with  reservations of electives and emergency of each type.
+    schedule  = pd.read_csv("results-" + str(instances[inst]) + "/schedule.csv")
     
     final_schedule = pd.DataFrame()
     
@@ -178,7 +200,7 @@ for itr in range(10):
     schedule['emer_arrival'] = [list() for x in range(len(schedule.index))]
     
     
-    patient_assignment = pd.read_csv("results-" + str(n_patients) +"/assignment.csv")
+    patient_assignment = pd.read_csv("results-" + str(instances[inst]) +"/assignment.csv")
     patient_assignment = patient_assignment.astype({"Patient":"int","Block":"int"})
     patient_assignment['duration'] = 0
     for i in range(len(schedule)):
@@ -189,7 +211,7 @@ for itr in range(10):
         for j in range(len(schedule.patients.iloc[i])):
             patient_assignment['duration'].at[schedule.patients.iloc[i][j]] = times[j]
         
-    
+    #
     
     days = [1,2,3,4,5]
     
@@ -198,7 +220,7 @@ for itr in range(10):
         today = copy.deepcopy(schedule[schedule["Day"] == i])
         #today = today.reset_index()
         emer_blocks = {}
-        emer_patients = param.generate_emergencies(count = emergencies_per_day, _id = n_patients + (i - 1) * emergencies_per_day)
+        emer_patients = param.generate_emergencies(count = emergencies_per_day, _id = param.num_patients + (i - 1) * emergencies_per_day)
         block_start_events = {}
         
         for j in range(len(today)):
@@ -214,6 +236,8 @@ for itr in range(10):
         time = 0
         #change this
         #emer_patients[0]['acuity'] = 3
+        
+        #event based simulation model
         last_finish = {}
         event_order = {('A',emer_patients[k]['acuity'] , 'EM',emer_patients[k]['_id'], k ):  emer_patients[k]['arrival_time'] for k in emer_patients}
         for k in today.index:
@@ -240,6 +264,7 @@ for itr in range(10):
             
             emer_start = {}
             if next_e[0] == 'A':
+                #arrival event block
                 time = event_order[next_e]
                 #today = update_surgery_end_time(time, today)
                 print("Arrival: ", next_e, " at ", time)
@@ -306,9 +331,6 @@ for itr in range(10):
                             model = Model("./RE_OPT.mzn")
                             solver = Solver.lookup("gecode")
                             instance = Instance(solver, model)
-                            if n_nu_emer > 0:
-                                print("cheeck")
-                            
                             
                             instance["num_electives"] = n_electives
                             instance["num_emer"] = 1
@@ -323,7 +345,7 @@ for itr in range(10):
                             instance["emer_duration"] = [param.emer_exp_dur]
                             instance["n_emer_duration"] = nu_emer_duration
                             
-                            instance["C_over"] = 5
+                            instance["C_over"] = 10
                             instance["C_wait"] = 2
                             instance["C_idle"] = 1
                             instance["C_canc"] = C_canc
@@ -367,6 +389,7 @@ for itr in range(10):
                 today.emer_arrival.loc[block_select].append(emer_patients[next_e[4]]['arrival_time'])
                 
             elif  next_e[0] == 'F':
+                #finish event check
                 time = event_order[next_e]
                 today = update_surgery_end_time(time, next_e[3], today)
                 next_surgery = get_next_surgery_start(time, next_e[3])
@@ -378,6 +401,7 @@ for itr in range(10):
                 print("Finished: ",next_e, " at ", time)
                 last_finish[next_e[3]] = time
             elif next_e[0] == 'S':
+                #start event check
                 today["status"].at[next_e[3]] = 0
                 time = event_order[next_e]
                 if time - last_finish[next_e[3]] < 0:
