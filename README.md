@@ -69,7 +69,7 @@ python emergencies_cost_estimation.py
 
 ## Files/Directories
 
-data/ - contains the code and references to produce the patients data along with a literature review (Survey.txt).
+Data/ - contains the code and references to produce the patients data along with a literature review (Survey.txt).
 
 AIMMS/ - contains the AIMMS program that produces a schedule.
 
