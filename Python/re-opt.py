@@ -30,6 +30,8 @@ inst = 2
 param = DATA_GENERATOR()
 param.generate_data()
 
+print("\nPlease see https://github.com/aparjadis/Hanalog_MOPTA2022 for a polished version of this algorithm. Thanks!\n\n")
+
 specialties = {'CAR': 'Card', 'GAS': 'Gastro', 'GYN': 'Gyn', 'MED': 'Med', 'ORT': 'Orth', 'URO': 'Uro'}
 
 def update_surgery_end_time(time, a, today):
